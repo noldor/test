@@ -55,17 +55,4 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
             ->action('Сбросить пароль', route('password.reset', $this->token))
             ->line('Если вы не запрашивали сброс пароля, сообщите о данном происшествии вашему куратору из ФСБ.');
     }
-
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
-    public function toArray($notifiable)
-    {
-        return [
-            //
-        ];
-    }
 }
