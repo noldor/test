@@ -1,11 +1,25 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use \Illuminate\Database\Connection;
+use Illuminate\Container\Container;
 
 class CreateUsersTable extends Migration
 {
+    /**
+     * @var Connection
+     */
+    private $db;
+
+    /**
+     * CreateUsersTable constructor.
+     */
+    public function __construct()
+    {
+        $this->db = Container::getInstance()->make('db');
+    }
+
     /**
      * Run the migrations.
      *
@@ -13,7 +27,7 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        $this->db->getSchemaBuilder()->create('users', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
             $table->string('email')->unique();
@@ -30,6 +44,6 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        $this->db->getSchemaBuilder()->dropIfExists('users');
     }
 }
