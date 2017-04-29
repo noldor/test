@@ -1,0 +1,14 @@
+{
+  "methodCalls": [
+    {
+      "class": "\\Illuminate\\Container\\Container",
+      "method": "make",
+      "position": 0
+    },
+    {
+      "class": "\\Illuminate\\Foundation\\Application",
+      "method": "make",
+      "position": 0
+    }
+  ]
+}

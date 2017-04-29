@@ -10,11 +10,12 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+$router = \Illuminate\Container\Container::getInstance()->make(\Illuminate\Routing\Router::class);
 
-Route::get('/', function () {
-    return view('welcome');
+$router->auth();
+
+$router->get('/home', 'HomeController@index')->name('home');
+$router->get('/', function() {
+    dd(\Illuminate\Container\Container::getInstance());
+    return 'data';
 });
-
-Auth::routes();
-
-Route::get('/home', 'HomeController@index')->name('home');
