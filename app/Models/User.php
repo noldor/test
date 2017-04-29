@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -9,21 +9,6 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     use Notifiable;
-
-    /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $email;
-
-    /**
-     * @var string
-     */
-    private $password;
 
     /**
      * The attributes that are mass assignable.
@@ -44,7 +29,18 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'role'
     ];
+
+    /**
+     * Determine if current user has admin role.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'Admin';
+    }
 
     /**
      * @return string

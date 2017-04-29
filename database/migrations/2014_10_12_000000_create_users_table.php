@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use \Illuminate\Database\Connection;
-use Illuminate\Container\Container;
+use \Illuminate\Foundation\Application;
 
 class CreateUsersTable extends Migration
 {
@@ -17,7 +17,7 @@ class CreateUsersTable extends Migration
      */
     public function __construct()
     {
-        $this->db = Container::getInstance()->make('db');
+        $this->db = Application::getInstance()->make('db');
     }
 
     /**
@@ -28,9 +28,10 @@ class CreateUsersTable extends Migration
     public function up()
     {
         $this->db->getSchemaBuilder()->create('users', function (Blueprint $table) {
-            $table->increments('id');
+            $table->bigIncrements('id');
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('role')->default('User');
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

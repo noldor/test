@@ -64,7 +64,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Europe/Moscow',
 
     /*
     |--------------------------------------------------------------------------
@@ -167,6 +167,13 @@ return [
          * Package Service Providers...
          */
         Laravel\Tinker\TinkerServiceProvider::class,
+
+        /*
+         * Composers
+         */
+        \App\ViewComposers\UserComposerServiceProvider::class,
+
+        Barryvdh\Debugbar\ServiceProvider::class,
 
         /*
          * Application Service Providers...

@@ -2,7 +2,7 @@
 
 namespace Tests\Browser;
 
-use App\User;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
@@ -14,6 +14,7 @@ class LoginTest extends DuskTestCase
     /**
      * Test that we can auth by created user.
      *
+     * @group Auth
      * @return void
      */
     public function testCanLogin()
@@ -24,11 +25,11 @@ class LoginTest extends DuskTestCase
         ]);
 
         $this->browse(function (Browser $browser) use ($user) {
-            $browser->visit('/login')
+            $browser->visitRoute('login')
                 ->type('email', $user->email)
                 ->type('password', 'secret')
                 ->press('Войти')
-                ->assertPathIs('/');
+                ->assertRouteIs('calculations.index');
         });
     }
 }

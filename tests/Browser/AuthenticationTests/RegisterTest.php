@@ -13,18 +13,19 @@ class RegisterTest extends DuskTestCase
     /**
      * Test that we can auth by created user.
      *
+     * @group Auth
      * @return void
      */
     public function testCanRegister()
     {
         $this->browse(function (Browser $browser) {
-            $browser->visit('/register')
+            $browser->visitRoute('register')
                 ->type('name', 'noldor')
                 ->type('email', 'romanov@noldor.pro')
                 ->type('password', 'secret')
                 ->type('password_confirmation', 'secret')
                 ->press('Зарегистрироваться')
-                ->assertPathIs('/');
+                ->assertRouteIs('calculations.index');
         });
 
         $this->assertDatabaseHas('users',
