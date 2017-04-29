@@ -16,6 +16,5 @@ $router->auth();
 
 $router->get('/home', 'HomeController@index')->name('home');
 $router->get('/', function() {
-    dd(\Illuminate\Container\Container::getInstance());
     return 'data';
 });
