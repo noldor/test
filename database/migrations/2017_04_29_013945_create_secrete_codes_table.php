@@ -1,14 +1,14 @@
 <?php
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Migrations\Migration;
-use \Illuminate\Database\Connection;
 use \Illuminate\Foundation\Application;
+use Illuminate\Database\Migrations\Migration;
 
-class CreateUsersTable extends Migration
+class CreateSecreteCodesTable extends Migration
 {
     /**
-     * @var Connection
+     * @var \Illuminate\Database\Connection
      */
     private $db;
 
@@ -27,13 +27,9 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        $this->db->getSchemaBuilder()->create('users', function (Blueprint $table) {
+        $this->db->getSchemaBuilder()->create('secrete_codes', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('role')->default('User');
-            $table->string('password');
-            $table->rememberToken();
+            $table->longText('value');
             $table->timestamps();
         });
     }
@@ -45,6 +41,6 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        $this->db->getSchemaBuilder()->dropIfExists('users');
+        $this->db->getSchemaBuilder()->dropIfExists('secrete_codes');
     }
 }

@@ -33204,6 +33204,695 @@ module.exports = function(module) {
 
 /***/ }),
 
+/***/ "./node_modules/whatwg-fetch/fetch.js":
+/***/ (function(module, exports) {
+
+(function(self) {
+  'use strict';
+
+  if (self.fetch) {
+    return
+  }
+
+  var support = {
+    searchParams: 'URLSearchParams' in self,
+    iterable: 'Symbol' in self && 'iterator' in Symbol,
+    blob: 'FileReader' in self && 'Blob' in self && (function() {
+      try {
+        new Blob()
+        return true
+      } catch(e) {
+        return false
+      }
+    })(),
+    formData: 'FormData' in self,
+    arrayBuffer: 'ArrayBuffer' in self
+  }
+
+  if (support.arrayBuffer) {
+    var viewClasses = [
+      '[object Int8Array]',
+      '[object Uint8Array]',
+      '[object Uint8ClampedArray]',
+      '[object Int16Array]',
+      '[object Uint16Array]',
+      '[object Int32Array]',
+      '[object Uint32Array]',
+      '[object Float32Array]',
+      '[object Float64Array]'
+    ]
+
+    var isDataView = function(obj) {
+      return obj && DataView.prototype.isPrototypeOf(obj)
+    }
+
+    var isArrayBufferView = ArrayBuffer.isView || function(obj) {
+      return obj && viewClasses.indexOf(Object.prototype.toString.call(obj)) > -1
+    }
+  }
+
+  function normalizeName(name) {
+    if (typeof name !== 'string') {
+      name = String(name)
+    }
+    if (/[^a-z0-9\-#$%&'*+.\^_`|~]/i.test(name)) {
+      throw new TypeError('Invalid character in header field name')
+    }
+    return name.toLowerCase()
+  }
+
+  function normalizeValue(value) {
+    if (typeof value !== 'string') {
+      value = String(value)
+    }
+    return value
+  }
+
+  // Build a destructive iterator for the value list
+  function iteratorFor(items) {
+    var iterator = {
+      next: function() {
+        var value = items.shift()
+        return {done: value === undefined, value: value}
+      }
+    }
+
+    if (support.iterable) {
+      iterator[Symbol.iterator] = function() {
+        return iterator
+      }
+    }
+
+    return iterator
+  }
+
+  function Headers(headers) {
+    this.map = {}
+
+    if (headers instanceof Headers) {
+      headers.forEach(function(value, name) {
+        this.append(name, value)
+      }, this)
+    } else if (Array.isArray(headers)) {
+      headers.forEach(function(header) {
+        this.append(header[0], header[1])
+      }, this)
+    } else if (headers) {
+      Object.getOwnPropertyNames(headers).forEach(function(name) {
+        this.append(name, headers[name])
+      }, this)
+    }
+  }
+
+  Headers.prototype.append = function(name, value) {
+    name = normalizeName(name)
+    value = normalizeValue(value)
+    var oldValue = this.map[name]
+    this.map[name] = oldValue ? oldValue+','+value : value
+  }
+
+  Headers.prototype['delete'] = function(name) {
+    delete this.map[normalizeName(name)]
+  }
+
+  Headers.prototype.get = function(name) {
+    name = normalizeName(name)
+    return this.has(name) ? this.map[name] : null
+  }
+
+  Headers.prototype.has = function(name) {
+    return this.map.hasOwnProperty(normalizeName(name))
+  }
+
+  Headers.prototype.set = function(name, value) {
+    this.map[normalizeName(name)] = normalizeValue(value)
+  }
+
+  Headers.prototype.forEach = function(callback, thisArg) {
+    for (var name in this.map) {
+      if (this.map.hasOwnProperty(name)) {
+        callback.call(thisArg, this.map[name], name, this)
+      }
+    }
+  }
+
+  Headers.prototype.keys = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push(name) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.values = function() {
+    var items = []
+    this.forEach(function(value) { items.push(value) })
+    return iteratorFor(items)
+  }
+
+  Headers.prototype.entries = function() {
+    var items = []
+    this.forEach(function(value, name) { items.push([name, value]) })
+    return iteratorFor(items)
+  }
+
+  if (support.iterable) {
+    Headers.prototype[Symbol.iterator] = Headers.prototype.entries
+  }
+
+  function consumed(body) {
+    if (body.bodyUsed) {
+      return Promise.reject(new TypeError('Already read'))
+    }
+    body.bodyUsed = true
+  }
+
+  function fileReaderReady(reader) {
+    return new Promise(function(resolve, reject) {
+      reader.onload = function() {
+        resolve(reader.result)
+      }
+      reader.onerror = function() {
+        reject(reader.error)
+      }
+    })
+  }
+
+  function readBlobAsArrayBuffer(blob) {
+    var reader = new FileReader()
+    var promise = fileReaderReady(reader)
+    reader.readAsArrayBuffer(blob)
+    return promise
+  }
+
+  function readBlobAsText(blob) {
+    var reader = new FileReader()
+    var promise = fileReaderReady(reader)
+    reader.readAsText(blob)
+    return promise
+  }
+
+  function readArrayBufferAsText(buf) {
+    var view = new Uint8Array(buf)
+    var chars = new Array(view.length)
+
+    for (var i = 0; i < view.length; i++) {
+      chars[i] = String.fromCharCode(view[i])
+    }
+    return chars.join('')
+  }
+
+  function bufferClone(buf) {
+    if (buf.slice) {
+      return buf.slice(0)
+    } else {
+      var view = new Uint8Array(buf.byteLength)
+      view.set(new Uint8Array(buf))
+      return view.buffer
+    }
+  }
+
+  function Body() {
+    this.bodyUsed = false
+
+    this._initBody = function(body) {
+      this._bodyInit = body
+      if (!body) {
+        this._bodyText = ''
+      } else if (typeof body === 'string') {
+        this._bodyText = body
+      } else if (support.blob && Blob.prototype.isPrototypeOf(body)) {
+        this._bodyBlob = body
+      } else if (support.formData && FormData.prototype.isPrototypeOf(body)) {
+        this._bodyFormData = body
+      } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+        this._bodyText = body.toString()
+      } else if (support.arrayBuffer && support.blob && isDataView(body)) {
+        this._bodyArrayBuffer = bufferClone(body.buffer)
+        // IE 10-11 can't handle a DataView body.
+        this._bodyInit = new Blob([this._bodyArrayBuffer])
+      } else if (support.arrayBuffer && (ArrayBuffer.prototype.isPrototypeOf(body) || isArrayBufferView(body))) {
+        this._bodyArrayBuffer = bufferClone(body)
+      } else {
+        throw new Error('unsupported BodyInit type')
+      }
+
+      if (!this.headers.get('content-type')) {
+        if (typeof body === 'string') {
+          this.headers.set('content-type', 'text/plain;charset=UTF-8')
+        } else if (this._bodyBlob && this._bodyBlob.type) {
+          this.headers.set('content-type', this._bodyBlob.type)
+        } else if (support.searchParams && URLSearchParams.prototype.isPrototypeOf(body)) {
+          this.headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8')
+        }
+      }
+    }
+
+    if (support.blob) {
+      this.blob = function() {
+        var rejected = consumed(this)
+        if (rejected) {
+          return rejected
+        }
+
+        if (this._bodyBlob) {
+          return Promise.resolve(this._bodyBlob)
+        } else if (this._bodyArrayBuffer) {
+          return Promise.resolve(new Blob([this._bodyArrayBuffer]))
+        } else if (this._bodyFormData) {
+          throw new Error('could not read FormData body as blob')
+        } else {
+          return Promise.resolve(new Blob([this._bodyText]))
+        }
+      }
+
+      this.arrayBuffer = function() {
+        if (this._bodyArrayBuffer) {
+          return consumed(this) || Promise.resolve(this._bodyArrayBuffer)
+        } else {
+          return this.blob().then(readBlobAsArrayBuffer)
+        }
+      }
+    }
+
+    this.text = function() {
+      var rejected = consumed(this)
+      if (rejected) {
+        return rejected
+      }
+
+      if (this._bodyBlob) {
+        return readBlobAsText(this._bodyBlob)
+      } else if (this._bodyArrayBuffer) {
+        return Promise.resolve(readArrayBufferAsText(this._bodyArrayBuffer))
+      } else if (this._bodyFormData) {
+        throw new Error('could not read FormData body as text')
+      } else {
+        return Promise.resolve(this._bodyText)
+      }
+    }
+
+    if (support.formData) {
+      this.formData = function() {
+        return this.text().then(decode)
+      }
+    }
+
+    this.json = function() {
+      return this.text().then(JSON.parse)
+    }
+
+    return this
+  }
+
+  // HTTP methods whose capitalization should be normalized
+  var methods = ['DELETE', 'GET', 'HEAD', 'OPTIONS', 'POST', 'PUT']
+
+  function normalizeMethod(method) {
+    var upcased = method.toUpperCase()
+    return (methods.indexOf(upcased) > -1) ? upcased : method
+  }
+
+  function Request(input, options) {
+    options = options || {}
+    var body = options.body
+
+    if (input instanceof Request) {
+      if (input.bodyUsed) {
+        throw new TypeError('Already read')
+      }
+      this.url = input.url
+      this.credentials = input.credentials
+      if (!options.headers) {
+        this.headers = new Headers(input.headers)
+      }
+      this.method = input.method
+      this.mode = input.mode
+      if (!body && input._bodyInit != null) {
+        body = input._bodyInit
+        input.bodyUsed = true
+      }
+    } else {
+      this.url = String(input)
+    }
+
+    this.credentials = options.credentials || this.credentials || 'omit'
+    if (options.headers || !this.headers) {
+      this.headers = new Headers(options.headers)
+    }
+    this.method = normalizeMethod(options.method || this.method || 'GET')
+    this.mode = options.mode || this.mode || null
+    this.referrer = null
+
+    if ((this.method === 'GET' || this.method === 'HEAD') && body) {
+      throw new TypeError('Body not allowed for GET or HEAD requests')
+    }
+    this._initBody(body)
+  }
+
+  Request.prototype.clone = function() {
+    return new Request(this, { body: this._bodyInit })
+  }
+
+  function decode(body) {
+    var form = new FormData()
+    body.trim().split('&').forEach(function(bytes) {
+      if (bytes) {
+        var split = bytes.split('=')
+        var name = split.shift().replace(/\+/g, ' ')
+        var value = split.join('=').replace(/\+/g, ' ')
+        form.append(decodeURIComponent(name), decodeURIComponent(value))
+      }
+    })
+    return form
+  }
+
+  function parseHeaders(rawHeaders) {
+    var headers = new Headers()
+    rawHeaders.split(/\r?\n/).forEach(function(line) {
+      var parts = line.split(':')
+      var key = parts.shift().trim()
+      if (key) {
+        var value = parts.join(':').trim()
+        headers.append(key, value)
+      }
+    })
+    return headers
+  }
+
+  Body.call(Request.prototype)
+
+  function Response(bodyInit, options) {
+    if (!options) {
+      options = {}
+    }
+
+    this.type = 'default'
+    this.status = 'status' in options ? options.status : 200
+    this.ok = this.status >= 200 && this.status < 300
+    this.statusText = 'statusText' in options ? options.statusText : 'OK'
+    this.headers = new Headers(options.headers)
+    this.url = options.url || ''
+    this._initBody(bodyInit)
+  }
+
+  Body.call(Response.prototype)
+
+  Response.prototype.clone = function() {
+    return new Response(this._bodyInit, {
+      status: this.status,
+      statusText: this.statusText,
+      headers: new Headers(this.headers),
+      url: this.url
+    })
+  }
+
+  Response.error = function() {
+    var response = new Response(null, {status: 0, statusText: ''})
+    response.type = 'error'
+    return response
+  }
+
+  var redirectStatuses = [301, 302, 303, 307, 308]
+
+  Response.redirect = function(url, status) {
+    if (redirectStatuses.indexOf(status) === -1) {
+      throw new RangeError('Invalid status code')
+    }
+
+    return new Response(null, {status: status, headers: {location: url}})
+  }
+
+  self.Headers = Headers
+  self.Request = Request
+  self.Response = Response
+
+  self.fetch = function(input, init) {
+    return new Promise(function(resolve, reject) {
+      var request = new Request(input, init)
+      var xhr = new XMLHttpRequest()
+
+      xhr.onload = function() {
+        var options = {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: parseHeaders(xhr.getAllResponseHeaders() || '')
+        }
+        options.url = 'responseURL' in xhr ? xhr.responseURL : options.headers.get('X-Request-URL')
+        var body = 'response' in xhr ? xhr.response : xhr.responseText
+        resolve(new Response(body, options))
+      }
+
+      xhr.onerror = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.ontimeout = function() {
+        reject(new TypeError('Network request failed'))
+      }
+
+      xhr.open(request.method, request.url, true)
+
+      if (request.credentials === 'include') {
+        xhr.withCredentials = true
+      }
+
+      if ('responseType' in xhr && support.blob) {
+        xhr.responseType = 'blob'
+      }
+
+      request.headers.forEach(function(value, name) {
+        xhr.setRequestHeader(name, value)
+      })
+
+      xhr.send(typeof request._bodyInit === 'undefined' ? null : request._bodyInit)
+    })
+  }
+  self.fetch.polyfill = true
+})(typeof self !== 'undefined' ? self : this);
+
+
+/***/ }),
+
+/***/ "./resources/assets/js/StatusCodesRussian.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var StatusCodes = function () {
+    function StatusCodes() {
+        _classCallCheck(this, StatusCodes);
+    }
+
+    _createClass(StatusCodes, null, [{
+        key: 400,
+        value: function value() {
+            return 'Код ошибки: 400, Плохой, неверный запрос';
+        }
+    }, {
+        key: 401,
+        value: function value() {
+            return 'Код ошибки: 401, Не авторизован';
+        }
+    }, {
+        key: 402,
+        value: function value() {
+            return 'Код ошибки: 402, Необходима оплата';
+        }
+    }, {
+        key: 403,
+        value: function value() {
+            return 'Код ошибки: 403, Запрещено';
+        }
+    }, {
+        key: 404,
+        value: function value() {
+            return 'Код ошибки: 404, Не найдено';
+        }
+    }, {
+        key: 405,
+        value: function value() {
+            return 'Код ошибки: 405, Метод не поддерживается';
+        }
+    }, {
+        key: 406,
+        value: function value() {
+            return 'Код ошибки: 406, Неприемлемо';
+        }
+    }, {
+        key: 407,
+        value: function value() {
+            return 'Код ошибки: 407, Необходима аутентификация прокси';
+        }
+    }, {
+        key: 408,
+        value: function value() {
+            return 'Код ошибки: 408, Истекло время ожидания';
+        }
+    }, {
+        key: 409,
+        value: function value() {
+            return 'Код ошибки: 409, Конфликт';
+        }
+    }, {
+        key: 410,
+        value: function value() {
+            return 'Код ошибки: 410, Удалён';
+        }
+    }, {
+        key: 411,
+        value: function value() {
+            return 'Код ошибки: 411, Необходима длина';
+        }
+    }, {
+        key: 412,
+        value: function value() {
+            return 'Код ошибки: 412, Условие ложно';
+        }
+    }, {
+        key: 413,
+        value: function value() {
+            return 'Код ошибки: 413, Размер запроса слишком велик';
+        }
+    }, {
+        key: 414,
+        value: function value() {
+            return 'Код ошибки: 414, Запрашиваемый URI слишком длинный';
+        }
+    }, {
+        key: 415,
+        value: function value() {
+            return 'Код ошибки: 415, Неподдерживаемый тип данных';
+        }
+    }, {
+        key: 416,
+        value: function value() {
+            return 'Код ошибки: 416, Запрашиваемый диапазон не достижим';
+        }
+    }, {
+        key: 417,
+        value: function value() {
+            return 'Код ошибки: 417, Ожидаемое неприемлемо';
+        }
+    }, {
+        key: 423,
+
+        //static 422() { return 'Код ошибки: 422, Необрабатываемый экземпляр'};
+        value: function value() {
+            return 'Код ошибки: 423, Заблокировано';
+        }
+    }, {
+        key: 424,
+        value: function value() {
+            return 'Код ошибки: 424, Невыполненная зависимость';
+        }
+    }, {
+        key: 425,
+        value: function value() {
+            return 'Код ошибки: 425, Неупорядоченный набор';
+        }
+    }, {
+        key: 426,
+        value: function value() {
+            return 'Код ошибки: 426, Необходимо обновление';
+        }
+    }, {
+        key: 428,
+        value: function value() {
+            return 'Код ошибки: 428, Необходимо предусловие';
+        }
+    }, {
+        key: 429,
+        value: function value() {
+            return 'Код ошибки: 429, Слишком много запросов';
+        }
+    }, {
+        key: 431,
+        value: function value() {
+            return 'Код ошибки: 431, Поля заголовка запроса слишком большие';
+        }
+    }, {
+        key: 449,
+        value: function value() {
+            return 'Код ошибки: 449, Повторить с';
+        }
+    }, {
+        key: 451,
+        value: function value() {
+            return 'Код ошибки: 451, Недоступно по юридическим причинам';
+        }
+    }, {
+        key: 500,
+        value: function value() {
+            return 'Код ошибки: 500, Внутренняя ошибка сервера';
+        }
+    }, {
+        key: 501,
+        value: function value() {
+            return 'Код ошибки: 501, Не реализовано';
+        }
+    }, {
+        key: 502,
+        value: function value() {
+            return 'Код ошибки: 502, Плохой, ошибочный шлюз';
+        }
+    }, {
+        key: 503,
+        value: function value() {
+            return 'Код ошибки: 503, Сервис недоступен';
+        }
+    }, {
+        key: 504,
+        value: function value() {
+            return 'Код ошибки: 504, Шлюз не отвечает';
+        }
+    }, {
+        key: 505,
+        value: function value() {
+            return 'Код ошибки: 505, Версия HTTP не поддерживается';
+        }
+    }, {
+        key: 506,
+        value: function value() {
+            return 'Код ошибки: 506, Вариант тоже проводит согласование';
+        }
+    }, {
+        key: 507,
+        value: function value() {
+            return 'Код ошибки: 507, Переполнение хранилища';
+        }
+    }, {
+        key: 508,
+        value: function value() {
+            return 'Код ошибки: 508, Обнаружено бесконечное перенаправление';
+        }
+    }, {
+        key: 509,
+        value: function value() {
+            return 'Код ошибки: 509, Исчерпана пропускная ширина канала';
+        }
+    }, {
+        key: 510,
+        value: function value() {
+            return 'Код ошибки: 510, Не расширено';
+        }
+    }, {
+        key: 511,
+        value: function value() {
+            return 'Код ошибки: 511, Требуется сетевая аутентификация';
+        }
+    }]);
+
+    return StatusCodes;
+}();
+
+/* harmony default export */ __webpack_exports__["a"] = (StatusCodes);
+
+/***/ }),
+
 /***/ "./resources/assets/js/app.js":
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -33222,7 +33911,14 @@ __webpack_require__("./resources/assets/js/bootstrap.js");
 
 
 
+/**
+ * Invoke entity delete events.
+ */
 __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1__events_EntityDeleteEvent__["a" /* default */])();
+
+/**
+ * Invoke form submit events.
+ */
 __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__events_EntitySaveEvents__["a" /* default */])();
 
 /***/ }),
@@ -33312,9 +34008,8 @@ var Calculation = function () {
         value: function save(form) {
             var body = new FormData(form);
             new __WEBPACK_IMPORTED_MODULE_0__request__["a" /* default */](this.action, this.method, function () {
-                console.log(111111111);
-                window.history.back();
-            }, body).promise();
+                window.location.replace('/calculations');
+            }, body).manageEntity();
         }
     }]);
 
@@ -33334,6 +34029,9 @@ var Calculation = function () {
 
 
 
+/**
+ * Events for delete buttons.
+ */
 /* harmony default export */ __webpack_exports__["a"] = (function () {
     document.querySelectorAll('.calculation-delete').forEach(function (element) {
         element.addEventListener('click', function (event) {
@@ -33353,6 +34051,9 @@ var Calculation = function () {
 
 
 
+/**
+ * Events for save button and submit form for entity save and update.
+ */
 /* harmony default export */ __webpack_exports__["a"] = (function () {
     var form = document.getElementById('main-form');
     if (form !== null) {
@@ -33376,6 +34077,9 @@ var Calculation = function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_sweetalert2__ = __webpack_require__("./node_modules/sweetalert2/dist/sweetalert2.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_sweetalert2__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__requestexception__ = __webpack_require__("./resources/assets/js/requestexception.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__StatusCodesRussian__ = __webpack_require__("./resources/assets/js/StatusCodesRussian.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_whatwg_fetch__ = __webpack_require__("./node_modules/whatwg-fetch/fetch.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_whatwg_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_whatwg_fetch__);
 
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -33385,7 +34089,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 
 
+
+
 var Request = function () {
+    /**
+     * @constructor
+     * @param {string} url
+     * @param {string} method
+     * @param {callback} callback
+     * @param {FormData} body
+     */
     function Request(url) {
         var method = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'POST';
         var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
@@ -33397,14 +34110,22 @@ var Request = function () {
         this.method = method;
         this.callback = callback;
         this.data = body;
+        this.csrf = window.Laravel.csrfToken;
     }
+
+    /**
+     * Make a simple ajax request.
+     *
+     * @return {Promise}
+     */
+
 
     _createClass(Request, [{
         key: "simpleRequest",
         value: function simpleRequest() {
             return fetch(this.url, {
                 headers: new Headers({
-                    "X-CSRF-TOKEN": window.Laravel.csrfToken,
+                    "X-CSRF-TOKEN": this.csrf,
                     "Accept": "application/json"
                 }),
                 method: this.method,
@@ -33413,28 +34134,38 @@ var Request = function () {
                 cache: 'no-cache'
             });
         }
+
+        /**
+         * Make request for store or updating entity in database.
+         */
+
     }, {
-        key: "promise",
-        value: function promise() {
+        key: "manageEntity",
+        value: function manageEntity() {
             var _this = this;
 
             fetch(this.url, {
                 headers: {
-                    "X-CSRF-TOKEN": window.Laravel.csrfToken,
+                    "X-CSRF-TOKEN": this.csrf,
                     "Accept": "application/json"
                 },
                 body: this.data,
+                // Not work with PUT or PATCH methods even in chrome.
                 method: 'POST',
                 mode: 'same-origin',
                 credentials: 'same-origin',
                 cache: 'no-cache'
             }).then(function (response) {
                 if (!response.ok) {
+                    //Instantiate an exception if response not successful.
                     throw new __WEBPACK_IMPORTED_MODULE_1__requestexception__["a" /* default */](response);
                 }
             }).then(function () {
+                _this.removeErrors();
+                // Create notification and invoke custom callback.
                 __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default()({
                     title: 'Выполнено!',
+                    type: 'success',
                     timer: 2000
                 }).then(function () {
                     _this.callback.call();
@@ -33442,55 +34173,99 @@ var Request = function () {
                     _this.callback.call();
                 });
             }).catch(function (exception) {
+                // Exception handling and error rendering if we have errors with validation.
                 if (exception.hasValidationErrors()) {
-                    _this.showErrors(exception.getValidationErrors());
+                    _this.renderErrors(exception.getValidationErrors());
                 } else {
                     __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default()({
-                        title: 'Что-то пошло нет так! Попробуйте позже.',
-                        timer: 2000
+                        title: __WEBPACK_IMPORTED_MODULE_2__StatusCodesRussian__["a" /* default */].hasOwnProperty(exception.getStatus()) ? __WEBPACK_IMPORTED_MODULE_2__StatusCodesRussian__["a" /* default */][exception.getStatus()].call() : 'Что-то пошло нет так! Попробуйте позже.',
+                        type: 'error'
                     });
                 }
             });
         }
+
+        /**
+         * Render errors on page.
+         *
+         * @param {Promise} data
+         */
+
     }, {
-        key: "showErrors",
-        value: function showErrors(data) {
+        key: "renderErrors",
+        value: function renderErrors(data) {
             data.then(function (json) {
+                var form = document.getElementById('main-form');
+                var errorsList = document.getElementById('errors-list');
                 for (var error in json) {
                     if (json.hasOwnProperty(error)) {
                         var message = json[error];
-                        console.log(error);
-                        console.log(message);
+                        form.querySelector('[name="' + error + '"]').parentElement.parentElement.classList.add("has-error");
+                        var newError = document.createElement('li');
+                        newError.innerHTML = message;
+                        errorsList.appendChild(newError);
                     }
                 }
+                errorsList.parentElement.classList.remove('hidden');
             });
         }
+
+        /**
+         * Remove all errors from html.
+         */
+
+    }, {
+        key: "removeErrors",
+        value: function removeErrors() {
+            var form = document.getElementById('main-form');
+            form.querySelectorAll('input, textarea').forEach(function (element) {
+                element.parentElement.parentElement.classList.remove("has-error");
+            });
+            document.getElementById('errors-list').parentElement.classList.add('hidden');
+        }
+
+        /**
+         * Call confirmation swal and then make ajax request for entity deleting.
+         */
+
     }, {
         key: "confirmRequest",
         value: function confirmRequest() {
             var _this2 = this;
 
+            // Create alert.
             __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default()({
                 title: 'Вы уверены?',
-                type: 'warning',
+                type: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Да, сделаем это!',
                 cancelButtonText: 'Подумаю еще!'
             }).then(function () {
-                __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default()({
-                    title: 'Выполнено!',
-                    type: 'success',
-                    timer: 2000
+                _this2.simpleRequest().then(function (response) {
+                    if (!response.ok) {
+                        //Instantiate an exception if response not successful.
+                        throw new __WEBPACK_IMPORTED_MODULE_1__requestexception__["a" /* default */](response);
+                    }
                 }).then(function () {
-                    _this2.simpleRequest();
                     _this2.callback.call();
+                    __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default()({
+                        title: 'Выполнено!',
+                        type: 'success',
+                        timer: 2000
+                    }).catch(__WEBPACK_IMPORTED_MODULE_0_sweetalert2___default.a.noop);
+                }).catch(function (exception) {
+                    __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default()({
+                        title: __WEBPACK_IMPORTED_MODULE_2__StatusCodesRussian__["a" /* default */].hasOwnProperty(exception.getStatus()) ? __WEBPACK_IMPORTED_MODULE_2__StatusCodesRussian__["a" /* default */][exception.getStatus()].call() : 'Что-то пошло нет так! Попробуйте позже.',
+                        type: 'error'
+                    });
                 });
             }, function () {
+                // We do not need delete entity.
                 __WEBPACK_IMPORTED_MODULE_0_sweetalert2___default()({
                     title: 'Отменено!',
                     type: 'error',
-                    timer: 2000
-                });
+                    timer: 1000
+                }).catch(__WEBPACK_IMPORTED_MODULE_0_sweetalert2___default.a.noop);
             });
         }
     }]);
@@ -33513,32 +34288,73 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var RequestException = function () {
+    /**
+     * @constructor
+     *
+     * @param response
+     */
     function RequestException(response) {
         _classCallCheck(this, RequestException);
 
         this.response = response;
     }
 
+    /**
+     * Get response promise.
+     *
+     * @returns Promise
+     */
+
+
     _createClass(RequestException, [{
         key: "getResponse",
         value: function getResponse() {
             return this.response;
         }
+
+        /**
+         * Get response status.
+         *
+         * @public
+         * @return {int}
+         */
+
     }, {
         key: "getStatus",
         value: function getStatus() {
             return this.response.status;
         }
+
+        /**
+         * Get response status text.
+         *
+         * @return {string}
+         */
+
     }, {
         key: "getMessage",
         value: function getMessage() {
             return this.response.statusText;
         }
+
+        /**
+         * Determine if response has validation errors.
+         *
+         * @return {boolean}
+         */
+
     }, {
         key: "hasValidationErrors",
         value: function hasValidationErrors() {
             return this.getStatus() === 422 && this.getMessage() === 'Unprocessable Entity';
         }
+
+        /**
+         * Return promise with validation errors.
+         *
+         * @return {*}
+         */
+
     }, {
         key: "getValidationErrors",
         value: function getValidationErrors() {

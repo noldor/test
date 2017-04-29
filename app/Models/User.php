@@ -11,21 +11,6 @@ class User extends Authenticatable
     use Notifiable;
 
     /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * @var string
-     */
-    private $email;
-
-    /**
-     * @var string
-     */
-    private $password;
-
-    /**
      * The attributes that are mass assignable.
      *
      * @var array
@@ -44,7 +29,18 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'role'
     ];
+
+    /**
+     * Determine if current user has admin role.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'Admin';
+    }
 
     /**
      * @return string

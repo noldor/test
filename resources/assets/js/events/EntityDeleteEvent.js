@@ -1,3 +1,14 @@
+"use strict";
+
+import Calculation from "./../calculation";
+
 /**
- * Created by noldor on 29.04.17.
+ * Events for delete buttons.
  */
+export default () => {
+    document.querySelectorAll('.calculation-delete').forEach(element => {
+        element.addEventListener('click', event => {
+            new Calculation('/calculations/' + element.dataset.id, 'DELETE', element.dataset.id).removeFromTable();
+        })
+    });
+}

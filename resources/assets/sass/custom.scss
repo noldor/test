@@ -1,0 +1,15 @@
+.table {
+  > thead,
+  > tbody,
+  > tfoot {
+    > tr {
+      > th,
+      > td {
+        vertical-align: middle;
+      }
+    }
+  }
+}
+textarea.form-control {
+  min-height: 500px;
+}

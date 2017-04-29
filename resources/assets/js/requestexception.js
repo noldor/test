@@ -23,7 +23,7 @@ class RequestException {
      * Get response status.
      *
      * @public
-     * @return {number}
+     * @return {int}
      */
     getStatus() {
         return this.response.status;

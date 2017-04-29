@@ -18,8 +18,7 @@ class Calculation {
     save(form) {
         let body = new FormData(form);
         new Request(this.action, this.method, () => {
-            console.log(111111111);
-            window.history.back();
+            window.location.replace('/calculations');
         }, body).manageEntity();
     }
 }

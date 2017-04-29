@@ -1,6 +1,7 @@
 <tr id="calculation-{{ $calculation->getAttribute('id') }}">
     <td>{{ $calculation->getAttribute('name') }}</td>
-    @if($user->isAdmin())<td>{{ $calculation->user->name }}</td>@endif
+    @if($user->isAdmin())
+        <td>{{ $calculation->user->name }}</td>@endif
     <td></td>
     <td title="{{ $calculation->getAttribute('created_at') }}">{{ $calculation->getAttribute('created_at')->diffForHumans() }}</td>
     <td title="{{ $calculation->getAttribute('updated_at') }}">{{ $calculation->getAttribute('updated_at')->diffForHumans() }}</td>

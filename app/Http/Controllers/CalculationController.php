@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCalculation;
 use App\Http\Requests\UpdateCalculation;
 use App\Models\Calculation;
-use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class CalculationController extends Controller
 {
@@ -62,8 +62,6 @@ class CalculationController extends Controller
      */
     public function create()
     {
-        $this->authorize('create');
-
         return $this->view->make('calculations.form', ['method' => 'POST', 'action' => $this->urlGenerator->route('calculations.store')]);
     }
 
@@ -76,8 +74,6 @@ class CalculationController extends Controller
      */
     public function store(StoreCalculation $request)
     {
-        $this->authorize('create');
-
         (new Calculation([
             'name'    => $request->get('name'),
             'source'  => $request->get('source'),
@@ -154,6 +150,7 @@ class CalculationController extends Controller
      */
     public function destroy(Calculation $calculation)
     {
+        //return new Response('', 511);
         $this->authorize('delete', $calculation);
 
         $calculation->delete();

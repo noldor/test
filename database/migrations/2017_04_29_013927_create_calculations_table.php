@@ -2,13 +2,12 @@
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-use \Illuminate\Database\Connection;
 use \Illuminate\Foundation\Application;
 
-class CreateUsersTable extends Migration
+class CreateCalculationsTable extends Migration
 {
     /**
-     * @var Connection
+     * @var \Illuminate\Database\Connection
      */
     private $db;
 
@@ -27,14 +26,15 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        $this->db->getSchemaBuilder()->create('users', function (Blueprint $table) {
+        //$this->db->getSchemaBuilder()->enableForeignKeyConstraints();
+        $this->db->getSchemaBuilder()->create('calculations', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
-            $table->string('email')->unique();
-            $table->string('role')->default('User');
-            $table->string('password');
-            $table->rememberToken();
+            $table->longText('source');
+            $table->unsignedBigInteger('user_id');
             $table->timestamps();
+
+            //$table->foreign('user_id')->references('id')->on('users');
         });
     }
 
@@ -45,6 +45,6 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        $this->db->getSchemaBuilder()->dropIfExists('users');
+        $this->db->getSchemaBuilder()->dropIfExists('calculations');
     }
 }

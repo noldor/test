@@ -14,6 +14,7 @@ class RememberPasswordTest extends DuskTestCase
     /**
      * Test that we can send mail for resetting password.
      *
+     * @group Auth
      * @return void
      */
     public function testBreakPassword()
@@ -25,10 +26,10 @@ class RememberPasswordTest extends DuskTestCase
         ]);
 
         $this->browse(function (Browser $browser) use ($user) {
-            $browser->visit('/password/reset')
+            $browser->visitRoute('password.request')
                 ->type('email', $user->email)
                 ->press('Отправить ссылку на смену пароля')
-                ->assertPathIs('/password/reset')
+                ->assertRouteIs('password.request')
                 ->assertSee('На ваш email отправлена ссылка для сброса пароля!');
         });
     }

@@ -1,9 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-    @php
-    /** @var \App\Models\Calculation $calculation */
-    @endphp
     <div class="container">
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
@@ -24,7 +21,8 @@
                                 <label for="source" class="col-md-4 control-label">Исходный текст</label>
 
                                 <div class="col-md-6">
-                                    <textarea id="source" class="form-control" disabled>{{ $calculation->getAttribute('source') }}</textarea>
+                                    <textarea id="source" class="form-control"
+                                              disabled>{{ $calculation->getAttribute('source') }}</textarea>
                                 </div>
                             </div>
                         </div>

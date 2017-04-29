@@ -19,6 +19,7 @@ class ResetPasswordTest extends DuskTestCase
     /**
      * Test reset password and authentication with new credentials.
      *
+     * @group Auth
      * @return void
      */
     public function testResetPassword()
@@ -41,12 +42,12 @@ class ResetPasswordTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) {
             $browser->logout()
-                ->visit('/login')
-                ->assertPathIs('/login')
+                ->visitRoute('login')
+                ->assertRouteIs('login')
                 ->type('email', 'romanov@noldor.pro')
                 ->type('password', 'newsecret')
                 ->press('Войти')
-                ->assertPathIs('/');
+                ->assertRouteIs('calculations.index');
         });
     }
 }

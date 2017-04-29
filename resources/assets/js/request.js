@@ -2,12 +2,14 @@
 
 import {default as swal} from "sweetalert2";
 import RequestException from "./requestexception";
+import StatusCodes from "./StatusCodesRussian";
+import 'whatwg-fetch';
 
 class Request {
     /**
      * @constructor
      * @param {string} url
-     * @param {string}method
+     * @param {string} method
      * @param {callback} callback
      * @param {FormData} body
      */
@@ -16,6 +18,7 @@ class Request {
         this.method = method;
         this.callback = callback;
         this.data = body;
+        this.csrf = window.Laravel.csrfToken;
     }
 
     /**
@@ -26,7 +29,7 @@ class Request {
     simpleRequest() {
         return fetch(this.url, {
             headers: new Headers({
-                "X-CSRF-TOKEN": window.Laravel.csrfToken,
+                "X-CSRF-TOKEN": this.csrf,
                 "Accept": "application/json"
             }),
             method: this.method,
@@ -42,11 +45,11 @@ class Request {
     manageEntity() {
         fetch(this.url, {
             headers: {
-                "X-CSRF-TOKEN": window.Laravel.csrfToken,
+                "X-CSRF-TOKEN": this.csrf,
                 "Accept": "application/json"
             },
             body: this.data,
-            // Not work with PUT or PATCH methods
+            // Not work with PUT or PATCH methods even in chrome.
             method: 'POST',
             mode: 'same-origin',
             credentials: 'same-origin',
@@ -57,9 +60,11 @@ class Request {
                 throw new RequestException(response);
             }
         }).then(() => {
+            this.removeErrors();
             // Create notification and invoke custom callback.
             swal({
                 title: 'Выполнено!',
+                type: 'success',
                 timer: 2000
             }).then(() => {
                 this.callback.call();
@@ -71,10 +76,9 @@ class Request {
             if (exception.hasValidationErrors()) {
                 this.renderErrors(exception.getValidationErrors());
             } else {
-                // Undefined error, show notification.
                 swal({
-                    title: 'Что-то пошло нет так! Попробуйте позже.',
-                    timer: 2000
+                    title: StatusCodes.hasOwnProperty(exception.getStatus()) ? StatusCodes[exception.getStatus()].call() : 'Что-то пошло нет так! Попробуйте позже.',
+                    type: 'error'
                 });
             }
         });
@@ -87,14 +91,30 @@ class Request {
      */
     renderErrors(data) {
         data.then(json => {
+            let form = document.getElementById('main-form');
+            let errorsList = document.getElementById('errors-list');
             for (let error in json) {
                 if (json.hasOwnProperty(error)) {
                     let message = json[error];
-                    console.log(error);
-                    console.log(message);
+                    form.querySelector('[name="' + error + '"]').parentElement.parentElement.classList.add("has-error");
+                    let newError = document.createElement('li');
+                    newError.innerHTML = message;
+                    errorsList.appendChild(newError);
                 }
             }
+            errorsList.parentElement.classList.remove('hidden');
         })
+    }
+
+    /**
+     * Remove all errors from html.
+     */
+    removeErrors() {
+        let form = document.getElementById('main-form');
+        form.querySelectorAll('input, textarea').forEach(element => {
+            element.parentElement.parentElement.classList.remove("has-error")
+        });
+        document.getElementById('errors-list').parentElement.classList.add('hidden');
     }
 
     /**
@@ -104,29 +124,37 @@ class Request {
         // Create alert.
         swal({
             title: 'Вы уверены?',
-            type: 'warning',
+            type: 'question',
             showCancelButton: true,
             confirmButtonText: 'Да, сделаем это!',
             cancelButtonText: 'Подумаю еще!'
         }).then(() => {
-            swal({
-                title: 'Выполнено!',
-                type: 'success',
-                timer: 2000
-            }).then(
-                // Call entity deleting request and invoke custom callback.
-                () => {
-                    this.simpleRequest();
-                    this.callback.call()
+            this.simpleRequest().then(response => {
+                    if (!response.ok) {
+                        //Instantiate an exception if response not successful.
+                        throw new RequestException(response);
+                    }
                 }
-            );
+            ).then(() => {
+                this.callback.call()
+                swal({
+                    title: 'Выполнено!',
+                    type: 'success',
+                    timer: 2000
+                }).catch(swal.noop)
+            }).catch(exception => {
+                    swal({
+                        title: StatusCodes.hasOwnProperty(exception.getStatus()) ? StatusCodes[exception.getStatus()].call() : 'Что-то пошло нет так! Попробуйте позже.',
+                        type: 'error'
+                    });
+                });
         }, () => {
             // We do not need delete entity.
             swal({
                 title: 'Отменено!',
                 type: 'error',
-                timer: 2000
-            });
+                timer: 1000
+            }).catch(swal.noop);
         })
     }
 }

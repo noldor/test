@@ -10,6 +10,14 @@ class CalculationPolicy
 {
     use HandlesAuthorization;
 
+    /**
+     * Determine if currrent user has admin role.
+     *
+     * @param \App\Models\User $user
+     * @param  string          $ability
+     *
+     * @return bool
+     */
     public function before(User $user, $ability)
     {
         return $user->isAdmin();
@@ -26,18 +34,6 @@ class CalculationPolicy
     public function view(User $user, Calculation $calculation)
     {
         return $user->id === $calculation->user_id;
-    }
-
-    /**
-     * Determine whether the user can create calculations.
-     *
-     * @param  \App\Models\User $user
-     *
-     * @return mixed
-     */
-    public function create(User $user)
-    {
-        //
     }
 
     /**

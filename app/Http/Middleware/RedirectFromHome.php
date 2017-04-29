@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 
 class RedirectFromHome
@@ -26,7 +27,7 @@ class RedirectFromHome
      *
      * @return mixed
      */
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next)
     {
         if (empty($request->getBasePath())) {
             return new RedirectResponse($this->urlGenerator->route('calculations.index'));

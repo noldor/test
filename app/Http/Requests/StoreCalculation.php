@@ -24,7 +24,7 @@ class StoreCalculation extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|max:255',
+            'name'   => 'required|max:255',
             'source' => 'required|max:4294967295'
         ];
     }

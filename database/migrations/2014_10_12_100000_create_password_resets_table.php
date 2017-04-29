@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Container\Container;
+use \Illuminate\Foundation\Application;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -17,7 +17,7 @@ class CreatePasswordResetsTable extends Migration
      */
     public function __construct()
     {
-        $this->db = Container::getInstance()->make('db');
+        $this->db = Application::getInstance()->make('db');
     }
 
     /**
