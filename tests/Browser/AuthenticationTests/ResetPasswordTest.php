@@ -2,7 +2,7 @@
 
 namespace Tests\Browser\AuthenticationTests;
 
-use App\User;
+use App\Models\User;
 use Illuminate\Auth\Passwords\PasswordBroker;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;

@@ -2,7 +2,7 @@
 
 namespace Tests\Browser\AuthenticationTests;
 
-use App\User;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
@@ -19,7 +19,7 @@ class RememberPasswordTest extends DuskTestCase
     public function testBreakPassword()
     {
         /** @var User $user */
-        $user = factory(User::class)->create([
+        $user = factory(\App\Models\User::class)->create([
             'email'    => 'romanov@noldor.pro',
             'password' => bcrypt('secret')
         ]);
