@@ -57,6 +57,32 @@ class Calculation extends Model
     }
 
     /**
+     * Save entity with relation.
+     *
+     * @param string   $name
+     * @param string   $source
+     * @param int      $userId
+     * @param iterable $sourceCodes
+     */
+    public function store(string $name, string $source, int $userId, iterable $sourceCodes)
+    {
+        $calculation = $this->setRawAttributes([
+            'name'    => $name,
+            'source'  => $source,
+            'user_id' => $userId
+        ]);
+
+        $calculation->save();
+
+        $codes = [];
+        foreach ($sourceCodes as $code) {
+            $codes[] = new SecreteCode(['value' => $code]);
+        }
+
+        $calculation->secreteCodes()->saveMany($codes);
+    }
+
+    /**
      * Get all secrete codes associated with current calculation.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany

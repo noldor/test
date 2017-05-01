@@ -28,7 +28,7 @@ class RegexIteratorParser implements ParserInterface
     /**
      * @var array
      */
-    private $result;
+    private $result = [];
 
     /**
      * RegexIteratorParser constructor.
@@ -67,7 +67,9 @@ class RegexIteratorParser implements ParserInterface
     {
         $sourceCodes = iterator_to_array(new \RegexIterator($this->sourceIterator, $this->regex, \RegexIterator::ALL_MATCHES));
 
-        $this->result = $this->formatToInt($sourceCodes);
+        if (!empty($sourceCodes)) {
+            $this->result = $this->formatToInt($sourceCodes);
+        }
 
         return $this;
     }

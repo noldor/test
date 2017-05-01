@@ -19,10 +19,11 @@ class ConvertCodes
     {
         if ($request->has('source')) {
             $parser = (new Converter($request->get('source')))->factory();
+            $parser->parse();
 
             $resultCodes = $parser->getResult(Converter::AS_ARRAY);
 
-            $codes = (!empty($resultCodes)) ? $resultCodes : null;
+            $codes = (!empty($resultCodes)) ? $resultCodes : [];
 
             $request->offsetSet('codes', $codes);
         }

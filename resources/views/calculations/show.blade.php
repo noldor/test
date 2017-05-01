@@ -17,6 +17,18 @@
                                 </div>
                             </div>
 
+                            @if (!is_null($calculation->getAttribute('secreteCodes')) && !$calculation->getAttribute('secreteCodes')->isEmpty())
+                                <div class="form-group">
+                                    <label class="col-md-4 control-label">Коды</label>
+
+                                    <div class="col-sm-6">
+                                        @foreach($calculation->getAttribute('secreteCodes') as $code)
+                                            <span class="label label-default">{{ $code->value }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="form-group">
                                 <label for="source" class="col-md-4 control-label">Исходный текст</label>
 

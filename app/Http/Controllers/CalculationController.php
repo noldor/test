@@ -9,7 +9,7 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 
 class CalculationController extends Controller
 {
@@ -52,6 +52,8 @@ class CalculationController extends Controller
         $user = $this->guard->user();
         $calculations = (new Calculation())->getList($user);
 
+        //dd($calculations);
+
         return $this->view->make('calculations.list', compact('calculations', 'user'));
     }
 
@@ -74,11 +76,12 @@ class CalculationController extends Controller
      */
     public function store(StoreCalculation $request)
     {
-        (new Calculation([
-            'name'    => $request->get('name'),
-            'source'  => $request->get('source'),
-            'user_id' => $this->guard->id()
-        ]))->save();
+        (new Calculation())->store(
+            $request->get('name'),
+            $request->get('source'),
+            $this->guard->id(),
+            $request->get('codes')
+        );
 
         // If we receive code 200 it means that entity was saved to database.
         return new JsonResponse(null, 200);
