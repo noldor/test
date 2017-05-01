@@ -8,16 +8,6 @@ use Illuminate\Support\Collection;
 class RegexIteratorParser implements ParserInterface
 {
     /**
-     * Const to set return type of results as array.
-     */
-    public const AS_ARRAY = 1;
-
-    /**
-     * Const to set return type of results as Iterator
-     */
-    public const AS_ITERATOR = 2;
-
-    /**
      * @var string
      */
     private $regex;
@@ -64,20 +54,20 @@ class RegexIteratorParser implements ParserInterface
         $sourceCodes = iterator_to_array(new \RegexIterator($this->sourceIterator, $this->regex, \RegexIterator::ALL_MATCHES));
 
         if (!empty($sourceCodes)) {
-            $this->result = $this->formatToInt($sourceCodes);
+            $this->result = $this->format($sourceCodes);
         }
 
         return $this;
     }
 
     /**
-     * Format array of string to integers.
+     * Format array of string
      *
      * @param array $sourceCodes
      *
      * @return array
      */
-    private function formatToInt(array $sourceCodes)
+    private function format(array $sourceCodes)
     {
         $codes = [];
         foreach ($sourceCodes[0][0] as $code) {

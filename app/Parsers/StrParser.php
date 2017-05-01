@@ -8,16 +8,6 @@ use Illuminate\Support\Collection;
 class StrParser implements ParserInterface
 {
     /**
-     * Const to set return type of results as array.
-     */
-    public const AS_ARRAY = 1;
-
-    /**
-     * Const to set return type of results as Iterator
-     */
-    public const AS_ITERATOR = 2;
-
-    /**
      * @var string
      */
     private $content;

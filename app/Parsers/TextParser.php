@@ -19,16 +19,6 @@ class TextParser implements ParserInterface
     private const MINUS = '-';
 
     /**
-     * Const to set return type of results as array.
-     */
-    public const AS_ARRAY = 1;
-
-    /**
-     * Const to set return type of results as Iterator
-     */
-    public const AS_ITERATOR = 2;
-
-    /**
      * Object with file.
      *
      * @var \SplFileObject

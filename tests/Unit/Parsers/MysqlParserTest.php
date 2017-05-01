@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Parsers;
 
-use App\Parsers\RegexIteratorParser;
+use App\Parsers\MysqlParser;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 
-class RegexIteratorParserTest extends TestCase
+class MysqlParserTest extends TestCase
 {
     public function data()
     {
@@ -19,20 +19,6 @@ class RegexIteratorParserTest extends TestCase
         ];
     }
 
-    public function testFormatToInt()
-    {
-        $parser = new RegexIteratorParser('', '');
-        $class = new \ReflectionClass($parser);
-
-        $method = $class->getMethod('format');
-        $method->setAccessible(true);
-
-        $this->assertSame(
-            ['123', '-355', '645', '-64'],
-            $method->invokeArgs($parser, [[[['+123', '-355', '645', '-64']]]])
-        );
-    }
-
     /**
      * @param string $source
      * @param array  $codes
@@ -40,7 +26,7 @@ class RegexIteratorParserTest extends TestCase
      */
     public function testParse(string $source, array $codes)
     {
-        $parser = new RegexIteratorParser($source);
+        $parser = new MysqlParser($source);
         $class = new \ReflectionClass($parser);
 
         $result = $class->getProperty('result');
@@ -48,7 +34,7 @@ class RegexIteratorParserTest extends TestCase
 
         $parser->parse();
 
-        $this->assertSame($codes, $result->getValue($parser));
+        $this->assertSame($codes, $result->getValue($parser)->toArray());
     }
 
     /**
@@ -58,7 +44,7 @@ class RegexIteratorParserTest extends TestCase
      */
     public function testGetResult(string $source, array $codes)
     {
-        $parser = new RegexIteratorParser($source);
+        $parser = new MysqlParser($source);
         $parser->parse();
 
         $this->assertInstanceOf(Collection::class, $parser->getResult());

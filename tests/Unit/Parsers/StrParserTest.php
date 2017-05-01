@@ -10,7 +10,7 @@ use Tests\TestCase;
 class StrParserTest extends TestCase
 {
     /**
-     * @var TextParser
+     * @var StrParser
      */
     private $parser;
 

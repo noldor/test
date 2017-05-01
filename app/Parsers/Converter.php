@@ -6,16 +6,6 @@ namespace App\Parsers;
 class Converter
 {
     /**
-     * Const to set return type of results as Iterator
-     */
-    public const AS_ITERATOR = 2;
-
-    /**
-     * Const to set return type of results as array.
-     */
-    public const AS_ARRAY = 1;
-
-    /**
      * @var string
      */
     private $content;

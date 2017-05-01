@@ -77,9 +77,12 @@
                                                 <option value="not regexp">not regexp</option>
                                             </select>
                                         </div>
-                                        <div class="col-sm-8">
+                                        <div class="col-sm-7">
                                             <input type="text" name="values[]" class="form-control values-input"
                                                    placeholder="Значение">
+                                        </div>
+                                        <div class="col-sm-1 filter-separator">
+                                            <div>И</div>
                                         </div>
                                     </div>
                                 </div>

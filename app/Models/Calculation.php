@@ -24,8 +24,8 @@ class Calculation extends Model
     ];
 
     private $reverseOperators = [
-        '!='       => '=',
-        'not like' => 'like',
+        '!='         => '=',
+        'not like'   => 'like',
         'not regexp' => 'regexp'
     ];
 
@@ -127,9 +127,7 @@ class Calculation extends Model
             } else {
                 $query->whereHas('secretCodes', function ($query) use ($filter) {
                     /** @var \Illuminate\Database\Query\Builder $query */
-                    if ($filter['type'] === 'null') {
-                        $query->whereNull('value');
-                    } else if ($filter['type'] === 'not null') {
+                    if ($filter['type'] === 'not null') {
                         $query->whereNotNull('value');
                     } else {
                         $query->where('value', $filter['type'], $filter['value']);
