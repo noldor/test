@@ -30,7 +30,7 @@ class StrParserTest extends TestCase
         return [
             [
                 'source' => file_get_contents(__DIR__ . '/testData.txt'),
-                'codes' => [457, 98, 2, 12637, 89123789, -2010]
+                'codes' => ['457', '98', '2', '12637', '89123789', '032', '0', '-2010']
             ]
         ];
     }
@@ -73,9 +73,12 @@ class StrParserTest extends TestCase
         $method->invokeArgs($this->parser, ['324dep']);
         $method->invokeArgs($this->parser, ['43221']);
         $method->invokeArgs($this->parser, ['0']);
+        $method->invokeArgs($this->parser, ['0123']);
+        $method->invokeArgs($this->parser, ['+']);
+        $method->invokeArgs($this->parser, ['+012']);
         $method->invokeArgs($this->parser, ['']);
 
-        $this->assertSame([423, 12, -54, 43221, 0], $result->getValue($this->parser)->toArray());
+        $this->assertSame(['423', '12', '-54', '43221', '0', '0123', '012'], $result->getValue($this->parser)->toArray());
     }
 
     /**

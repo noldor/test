@@ -139,7 +139,7 @@ class TextParser implements ParserInterface
     private function pushElement(): void
     {
         if (!is_null($this->currentElement)) {
-            $this->result->push(intval($this->currentElement));
+            $this->result->push(ltrim($this->currentElement, '+'));
             $this->currentElement = null;
         }
     }

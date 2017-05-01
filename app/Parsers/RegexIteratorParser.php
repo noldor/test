@@ -81,7 +81,7 @@ class RegexIteratorParser implements ParserInterface
     {
         $codes = [];
         foreach ($sourceCodes[0][0] as $code) {
-            $codes[] = intval($code);
+            $codes[] = ltrim($code, '+');
         }
 
         return $codes;

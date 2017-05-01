@@ -14,7 +14,7 @@ class RegexIteratorParserTest extends TestCase
         return [
             [
                 'source' => file_get_contents(__DIR__ . '/testData.txt'),
-                'codes' => [457, 98, 2, 12637, 89123789, -2010]
+                'codes' => ['457', '98', '2', '12637', '89123789', '032', '0', '-2010']
             ]
         ];
     }
@@ -28,7 +28,7 @@ class RegexIteratorParserTest extends TestCase
         $method->setAccessible(true);
 
         $this->assertSame(
-            [123, -355, 645, -64],
+            ['123', '-355', '645', '-64'],
             $method->invokeArgs($parser, [[[['+123', '-355', '645', '-64']]]])
         );
     }

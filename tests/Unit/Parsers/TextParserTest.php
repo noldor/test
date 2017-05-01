@@ -30,7 +30,7 @@ class TextParserTest extends TestCase
         return [
             [
                 'source' => file_get_contents(__DIR__ . '/testData.txt'),
-                'codes' => [457, 98, 2, 12637, 89123789, -2010]
+                'codes' => ['457', '98', '2', '12637', '89123789', '032', '0', '-2010']
             ]
         ];
     }
@@ -121,7 +121,7 @@ class TextParserTest extends TestCase
 
         $property->setValue($this->parser, null);
 
-        $this->assertSame([1234, 987, -675, 342], iterator_to_array($result->getValue($this->parser)));
+        $this->assertSame(['1234', '987', '-675', '342'], iterator_to_array($result->getValue($this->parser)));
     }
 
     /**

@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Parsers;
 
 use Illuminate\Support\Collection;
-use SplDoublyLinkedList;
 
 class StrParser implements ParserInterface
 {
@@ -117,7 +116,7 @@ class StrParser implements ParserInterface
      *
      * @return Collection
      */
-    public function getResult():Collection
+    public function getResult(): Collection
     {
         return clone $this->result;
     }
@@ -132,9 +131,13 @@ class StrParser implements ParserInterface
         $firstChar = mb_substr($needle, 0, 1, 'UTF-8');
         $otherChars = mb_substr($needle, 1, mb_strlen($needle, 'UTF-8'), 'UTF-8');
 
-        if ($needle !== '' && $this->filterChar($firstChar)) {
-            if (ctype_digit($otherChars) || $otherChars === '') {
-                $this->result->push(intval($firstChar . $otherChars));
+        if ($firstChar === '0' && empty($otherChars)) {
+            $this->result->push('0');
+        } else if (!empty($needle) && $this->filterChar($firstChar)) {
+            if (ctype_digit($firstChar) && empty($otherChars)) {
+                $this->result->push(ltrim($firstChar, '+'));
+            } else if ((ctype_digit($otherChars))) {
+                $this->result->push(ltrim($firstChar . $otherChars, '+'));
             }
         }
     }
@@ -146,7 +149,7 @@ class StrParser implements ParserInterface
      *
      * @return bool
      */
-    private function filterChar(string $char):bool
+    private function filterChar(string $char): bool
     {
         return (mb_stripos($this->goodChars, $char, 0, 'UTF-8') !== false) ? true : false;
     }
