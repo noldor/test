@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Calculation extends Model
@@ -15,11 +16,17 @@ class Calculation extends Model
         'user_id'
     ];
 
-    protected $touches = ['secreteCodes'];
+    protected $touches = ['secretCodes'];
 
     public $relations = [
-        'secreteCodes',
+        'secretCodes',
         'user'
+    ];
+
+    private $reverseOperators = [
+        '!='       => '=',
+        'not like' => 'like',
+        'not regexp' => 'regexp'
     ];
 
     /**
@@ -37,14 +44,13 @@ class Calculation extends Model
      * Get list of all calculations by user.
      *
      * @param \App\Models\User $user
+     * @param array            $filters
      *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    public function getList(User $user)
+    public function getList(User $user, $filters = [])
     {
-        $builder = (new self())
-            ->newQuery()
-            ->with('secreteCodes', 'user');
+        $builder = self::scopeFilter(self::newQuery(), $filters);
 
         if (!$user->isAdmin()) {
             $builder->where(
@@ -76,10 +82,10 @@ class Calculation extends Model
 
         $codes = [];
         foreach ($sourceCodes as $code) {
-            $codes[] = new SecreteCode(['value' => $code]);
+            $codes[] = new SecretCode(['value' => $code]);
         }
 
-        $calculation->secreteCodes()->saveMany($codes);
+        $calculation->secretCodes()->saveMany($codes);
     }
 
     /**
@@ -87,9 +93,9 @@ class Calculation extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function secreteCodes()
+    public function secretCodes()
     {
-        return $this->hasMany(SecreteCode::class);
+        return $this->hasMany(SecretCode::class);
     }
 
     /**
@@ -100,5 +106,38 @@ class Calculation extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param                                       $filters
+     *
+     * @return Builder
+     */
+    public function scopeFilter(Builder $query, $filters)
+    {
+        foreach ($filters as $filter) {
+            if (array_key_exists($filter['type'], $this->reverseOperators)) {
+                $query->whereDoesntHave('secretCodes', function ($query) use ($filter) {
+                    /** @var \Illuminate\Database\Query\Builder $query */
+                    $query->where('value', $this->reverseOperators[$filter['type']], $filter['value']);
+                });
+            } else if ($filter['type'] === 'null') {
+                $query->doesntHave('secretCodes');
+            } else {
+                $query->whereHas('secretCodes', function ($query) use ($filter) {
+                    /** @var \Illuminate\Database\Query\Builder $query */
+                    if ($filter['type'] === 'null') {
+                        $query->whereNull('value');
+                    } else if ($filter['type'] === 'not null') {
+                        $query->whereNotNull('value');
+                    } else {
+                        $query->where('value', $filter['type'], $filter['value']);
+                    }
+                });
+            }
+        }
+
+        return $query;
     }
 }

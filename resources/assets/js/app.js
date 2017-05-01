@@ -8,6 +8,7 @@
 require('./bootstrap');
 import EntitySaveEvents from "./events/EntitySaveEvents";
 import EntityDeleteEvent from "./events/EntityDeleteEvent";
+import AddFilterEvent from "./events/AddFilterEvent";
 
 /**
  * Invoke entity delete events.
@@ -18,3 +19,8 @@ EntityDeleteEvent();
  * Invoke form submit events.
  */
 EntitySaveEvents();
+
+/**
+ * Invoke add filter events.
+ */
+AddFilterEvent();

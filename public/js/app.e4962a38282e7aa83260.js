@@ -33900,6 +33900,7 @@ var StatusCodes = function () {
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__events_EntitySaveEvents__ = __webpack_require__("./resources/assets/js/events/EntitySaveEvents.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__events_EntityDeleteEvent__ = __webpack_require__("./resources/assets/js/events/EntityDeleteEvent.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__events_AddFilterEvent__ = __webpack_require__("./resources/assets/js/events/AddFilterEvent.js");
 
 /**
  * First we will load all of this project's JavaScript dependencies which
@@ -33908,6 +33909,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
  */
 
 __webpack_require__("./resources/assets/js/bootstrap.js");
+
 
 
 
@@ -33920,6 +33922,11 @@ __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1__events_EntityDeleteEvent__["a
  * Invoke form submit events.
  */
 __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0__events_EntitySaveEvents__["a" /* default */])();
+
+/**
+ * Invoke add filter events.
+ */
+__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2__events_AddFilterEvent__["a" /* default */])();
 
 /***/ }),
 
@@ -34017,6 +34024,29 @@ var Calculation = function () {
 }();
 
 /* harmony default export */ __webpack_exports__["a"] = (Calculation);
+
+/***/ }),
+
+/***/ "./resources/assets/js/events/AddFilterEvent.js":
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+
+
+/* harmony default export */ __webpack_exports__["a"] = (function () {
+    var button = document.getElementById('add-filter');
+    if (button !== null) {
+        button.addEventListener('click', function (event) {
+            var html = document.querySelector('.filter-block').cloneNode(true);
+            var nodeBefore = document.querySelector('.button-add-filter');
+
+            html.querySelector('.values-input').value = null;
+            html.querySelector('.types-input').selectedIndex = 0;
+
+            document.getElementById('filters').insertBefore(html, nodeBefore);
+        });
+    }
+});
 
 /***/ }),
 

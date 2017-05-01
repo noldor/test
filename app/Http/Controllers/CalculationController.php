@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class CalculationController extends Controller
@@ -45,16 +46,17 @@ class CalculationController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
+     *
      * @return \Illuminate\Contracts\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = $this->guard->user();
-        $calculations = (new Calculation())->getList($user);
+        $filters = !is_null($request->get('filters')) ? $request->get('filters') : [];
+        $calculations = (new Calculation())->getList($user, $filters);
 
-        //dd($calculations);
-
-        return $this->view->make('calculations.list', compact('calculations', 'user'));
+        return $this->view->make('calculations.list', compact('calculations', 'user', 'filters'));
     }
 
     /**

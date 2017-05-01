@@ -2,9 +2,9 @@
     <td>{{ $calculation->getAttribute('name') }}</td>
     @if($user->isAdmin())
         <td>{{ $calculation->user->name }}</td>@endif
-    @if (!is_null($calculation->getAttribute('secreteCodes')))
+    @if (!is_null($calculation->getAttribute('secretCodes')))
     <td>
-        @foreach($calculation->secreteCodes as $code)
+        @foreach($calculation->secretCodes as $code)
             <span class="label label-default">{{ $code->value }}</span>
         @endforeach
     </td>

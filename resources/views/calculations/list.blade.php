@@ -2,6 +2,7 @@
 
 @section('content')
     <div class="container">
+        @include('calculations.filters')
         <div class="row">
             <div class="col-sm-12">
                 <div class="table-responsive">
