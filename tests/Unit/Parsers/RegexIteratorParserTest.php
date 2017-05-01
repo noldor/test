@@ -4,11 +4,12 @@ declare(strict_types=1);
 namespace Tests\Unit\Parsers;
 
 use App\Parsers\RegexIteratorParser;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class RegexIteratorParserTest extends TestCase
 {
-    public function testData()
+    public function data()
     {
         return [
             [
@@ -20,7 +21,7 @@ class RegexIteratorParserTest extends TestCase
 
     public function testFormatToInt()
     {
-        $parser = new \App\Parsers\RegexIteratorParser('', '');
+        $parser = new RegexIteratorParser('', '');
         $class = new \ReflectionClass($parser);
 
         $method = $class->getMethod('formatToInt');
@@ -35,7 +36,7 @@ class RegexIteratorParserTest extends TestCase
     /**
      * @param string $source
      * @param array  $codes
-     * @dataProvider testData()
+     * @dataProvider data()
      */
     public function testParse(string $source, array $codes)
     {
@@ -53,14 +54,14 @@ class RegexIteratorParserTest extends TestCase
     /**
      * @param string $source
      * @param array  $codes
-     * @dataProvider testData()
+     * @dataProvider data()
      */
     public function testGetResult(string $source, array $codes)
     {
         $parser = new RegexIteratorParser($source);
         $parser->parse();
 
-        $this->assertInstanceOf(\ArrayIterator::class, $parser->getResult(RegexIteratorParser::AS_ITERATOR));
-        $this->assertSame($codes, $parser->getResult(RegexIteratorParser::AS_ARRAY));
+        $this->assertInstanceOf(Collection::class, $parser->getResult());
+        $this->assertSame($codes, $parser->getResult()->toArray());
     }
 }

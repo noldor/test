@@ -39,6 +39,8 @@ class Converter
     {
         if (class_exists(\RegexIterator::class)) {
             return new RegexIteratorParser($this->content);
+        } else if (extension_loaded('mbstring')) {
+            return new StrParser($this->content);
         } else {
             return new TextParser($this->content);
         }

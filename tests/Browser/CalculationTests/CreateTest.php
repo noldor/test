@@ -40,18 +40,21 @@ class CreateTest extends DuskTestCase
                 ->visitRoute('calculations.create')
                 ->assertSee('Результаты расчета')
                 ->type('name', 'название расчета')
-                ->type('source', 'исходные данные')
+                ->type('source', '{2} {+3.14} {12637} 9812 {89123789}')
                 ->press('Сохранить')
                 ->waitFor('.swal2-confirm')
                 ->click('.swal2-confirm')
                 ->waitForLocation('/calculations')
-                ->assertRouteIs('calculations.index');
+                ->assertRouteIs('calculations.index')
+                ->assertSee('12637')
+                ->assertSee('89123789')
+                ->assertSee('2');
         });
 
         $this->assertDatabaseHas('calculations', [
             'id'      => 1,
             'name'    => 'название расчета',
-            'source'  => 'исходные данные',
+            'source'  => '{2} {+3.14} {12637} 9812 {89123789}',
             'user_id' => $user->id
         ]);
     }

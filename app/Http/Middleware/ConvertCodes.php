@@ -21,11 +21,9 @@ class ConvertCodes
             $parser = (new Converter($request->get('source')))->factory();
             $parser->parse();
 
-            $resultCodes = $parser->getResult(Converter::AS_ARRAY);
+            $codes = $parser->getResult();
 
-            $codes = (!empty($resultCodes)) ? $resultCodes : [];
-
-            $request->offsetSet('codes', $codes);
+            $request->offsetSet('codes', $codes->toArray());
         }
 
         return $next($request);

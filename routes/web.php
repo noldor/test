@@ -15,6 +15,6 @@ $router = $this;
 $router->auth();
 
 $router->group(['middleware' => 'auth'], function() use ($router) {
-    $router->resource('/calculations', 'CalculationController');
+    $router->resource('/calculations', 'CalculationController', ['middleware' => ['create' => \App\Http\Middleware\ConvertCodes::class]]);
     $router->get('/', 'CalculationController@index')->middleware(\App\Http\Middleware\RedirectFromHome::class);
 });

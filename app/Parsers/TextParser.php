@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Parsers;
 
-use SplDoublyLinkedList;
+use Illuminate\Support\Collection;
 use SplTempFileObject;
 
 class TextParser implements ParserInterface
@@ -38,7 +38,7 @@ class TextParser implements ParserInterface
     /**
      * Object with all values.
      *
-     * @var \SplDoublyLinkedList
+     * @var Collection
      */
     private $result;
 
@@ -84,7 +84,7 @@ class TextParser implements ParserInterface
         $this->file->fwrite($content);
         // Go to beginning of file.
         $this->file->rewind();
-        $this->result = new SplDoublyLinkedList();
+        $this->result = new Collection();
         $this->openTag = $openTag;
         $this->closeTag = $closeTag;
     }
@@ -92,17 +92,11 @@ class TextParser implements ParserInterface
     /**
      * Get all needles as array.
      *
-     * @param int $type return type of results
-     *
-     * @return iterable
+     * @return Collection
      */
-    public function getResult(int $type = self::AS_ITERATOR):iterable
+    public function getResult():Collection
     {
-        if ($type === self::AS_ARRAY) {
-            return iterator_to_array($this->result);
-        } else {
-            return clone $this->result;
-        }
+        return clone $this->result;
     }
 
     /**

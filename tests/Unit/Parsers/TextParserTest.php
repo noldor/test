@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Parsers;
 
 use App\Parsers\TextParser;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 class TextParserTest extends TestCase
@@ -24,7 +25,7 @@ class TextParserTest extends TestCase
         $this->reflectionClass = new \ReflectionClass($this->parser);
     }
 
-    public function testData()
+    public function data()
     {
         return [
             [
@@ -126,7 +127,7 @@ class TextParserTest extends TestCase
     /**
      * @param string $source
      * @param array  $codes
-     * @dataProvider testData()
+     * @dataProvider data()
      */
     public function testParse(string $source, array $codes)
     {
@@ -138,20 +139,20 @@ class TextParserTest extends TestCase
 
         $parser->parse();
 
-        $this->assertSame($codes, iterator_to_array($result->getValue($parser)));
+        $this->assertSame($codes, $result->getValue($parser)->toArray());
     }
 
     /**
      * @param string $source
      * @param array  $codes
-     * @dataProvider testData()
+     * @dataProvider data()
      */
     public function testGetResult(string $source, array $codes)
     {
         $parser = new TextParser($source);
         $parser->parse();
 
-        $this->assertInstanceOf(\SplDoublyLinkedList::class, $parser->getResult(TextParser::AS_ITERATOR));
-        $this->assertSame($codes, $parser->getResult(TextParser::AS_ARRAY));
+        $this->assertInstanceOf(Collection::class, $parser->getResult());
+        $this->assertSame($codes, $parser->getResult()->toArray());
     }
 }

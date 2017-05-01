@@ -3,16 +3,16 @@ declare(strict_types=1);
 
 namespace App\Parsers;
 
+use Illuminate\Support\Collection;
+
 interface ParserInterface
 {
     /**
      * Get results.
      *
-     * @param int $type
-     *
-     * @return iterable
+     * @return Collection
      */
-    public function getResult(int $type): iterable;
+    public function getResult(): Collection;
 
     /**
      * Parse input source.

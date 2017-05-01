@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Parsers;
 
+use Illuminate\Support\Collection;
+
 class RegexIteratorParser implements ParserInterface
 {
     /**
@@ -45,17 +47,11 @@ class RegexIteratorParser implements ParserInterface
     /**
      * Get results array or Iterator.
      *
-     * @param int $type
-     *
-     * @return iterable
+     * @return Collection
      */
-    public function getResult(int $type = self::AS_ITERATOR): iterable
+    public function getResult(): Collection
     {
-        if ($type === self::AS_ARRAY) {
-            return $this->result;
-        } else {
-            return new \ArrayIterator($this->result);
-        }
+        return new Collection($this->result);
     }
 
     /**
