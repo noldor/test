@@ -150,7 +150,6 @@ class CalculationController extends Controller
      */
     public function destroy(Calculation $calculation)
     {
-        //return new Response('', 511);
         $this->authorize('delete', $calculation);
 
         $calculation->delete();

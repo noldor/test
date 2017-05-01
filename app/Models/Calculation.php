@@ -59,11 +59,11 @@ class Calculation extends Model
     /**
      * Get all secrete codes associated with current calculation.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function secreteCodes()
     {
-        return $this->belongsToMany(SecreteCode::class, 'secrete_code_to_calculation');
+        return $this->hasMany(SecreteCode::class);
     }
 
     /**

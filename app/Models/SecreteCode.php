@@ -15,10 +15,10 @@ class SecreteCode extends Model
     /**
      * Get all calculations where this code exists.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function getCalculations()
     {
-        return $this->belongsToMany(Calculation::class, 'secrete_code_to_calculation');
+        return $this->belongsTo(Calculation::class);
     }
 }
