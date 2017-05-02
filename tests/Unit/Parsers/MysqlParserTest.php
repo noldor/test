@@ -14,7 +14,11 @@ class MysqlParserTest extends TestCase
         return [
             [
                 'source' => file_get_contents(__DIR__ . '/testData.txt'),
-                'codes' => ['457', '98', '2', '12637', '89123789', '032', '0', '-2010']
+                'codes' => ['457', '111', '98', '2', '12637', '89123789', '032', '0', '-2010']
+            ],
+            [
+                'source' => file_get_contents(__DIR__ . '/testDataEmpty.txt'),
+                'codes' => []
             ]
         ];
     }

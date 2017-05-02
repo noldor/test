@@ -65,6 +65,13 @@ class StrParser implements ParserInterface
         $string = $this->content;
         while ($string !== false) {
             $start = mb_stripos($string, $this->openTag, 0, 'UTF-8') + 1;
+
+            $nextChar = mb_substr($string, $start, 1, 'UTF-8');
+            if ($nextChar === $this->openTag) {
+                $string = mb_substr($string, $start, mb_strlen($string, 'UTF-8'), 'UTF-8');
+                continue;
+            }
+
             $end = mb_stripos($string, $this->closeTag, 0, 'UTF-8');
             $length = mb_strlen($string, 'UTF-8');
 
@@ -80,7 +87,7 @@ class StrParser implements ParserInterface
             $interval = mb_substr($string, $start, $end - $start, 'UTF-8');
 
             if (mb_stripos($interval, $this->openTag, 0, 'UTF-8') !== false) {
-                $string = mb_substr($string, $start + 1, $length - $end, 'UTF-8');
+                $string = mb_substr($string, $start + 1, $length - $end + 1, 'UTF-8');
                 continue;
             }
 

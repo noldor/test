@@ -104,6 +104,11 @@ class TextParser implements ParserInterface
                 $this->isOpen = true;
                 // Move to next char, because we do not need open tag in element.
                 $char = $this->file->fgetc();
+
+                // if next char is openTag break current iteration
+                if ($this->isOpenTag($char)) {
+                    continue;
+                }
             }
 
             if ($this->isCloseTag($char)) {

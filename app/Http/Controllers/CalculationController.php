@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCalculation;
 use App\Http\Requests\UpdateCalculation;
 use App\Models\Calculation;
+use App\Parsers\StrParser;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Contracts\View\Factory as ViewFactory;
@@ -52,6 +53,48 @@ class CalculationController extends Controller
      */
     public function index(Request $request)
     {
+        $content = '-------------- начало ----------------
+
+demis
+
+4
+
+lala-}blab{la ! =))
+
+:(
+
+{457}7775 {-1.000001 }
+
+32
+
+{+98}
+
+{2} {+3.14} {12637} 9812 {89123789} {+032} {0}
+
+1
+
+O O1 01
+
+1O
+
+1}OO
+
+{zer}o!
+
+{df1000 ggg...
+
+{5-}
+
+105}
+
+{-2010}
+
+wass{auupp!!
+
+--------------- конец ----------------';
+        $parser = new StrParser($content);
+        $parser->parse();
+        dd();
         $user = $this->guard->user();
         $filters = !is_null($request->get('filters')) ? $request->get('filters') : [];
         $calculations = (new Calculation())->getList($user, $filters);
