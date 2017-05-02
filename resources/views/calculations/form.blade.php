@@ -34,14 +34,14 @@
 
                             @if (
                                 isset($calculation) &&
-                                !is_null($calculation->getAttribute('secreteCodes')) &&
-                                !$calculation->getAttribute('secreteCodes')->isEmpty()
+                                !is_null($calculation->getAttribute('secretCodes')) &&
+                                !$calculation->getAttribute('secretCodes')->isEmpty()
                             )
                                 <div class="form-group">
                                     <label class="col-md-4 control-label">Коды</label>
 
                                     <div class="col-sm-6">
-                                        @foreach($calculation->getAttribute('secreteCodes') as $code)
+                                        @foreach($calculation->getAttribute('secretCodes') as $code)
                                             <span class="label label-default">{{ $code->value }}</span>
                                         @endforeach
                                     </div>

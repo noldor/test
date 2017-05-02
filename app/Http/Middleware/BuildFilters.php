@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 
 class BuildFilters
 {
+    private $castToInt = [
+        '=', '>', '<', '>=', '<=', '!='
+    ];
+
     /**
      * Handle an incoming request.
      *
@@ -25,7 +29,7 @@ class BuildFilters
                     continue;
                 }
 
-                $filters[] = ['type' => $type, 'value' => $values[$key]];
+                $filters[] = ['type' => $type, 'value' => in_array($type, $this->castToInt, true) ? intval($values[$key]) : $values[$key]];
             }
             $request->offsetSet('filters', $filters);
         }

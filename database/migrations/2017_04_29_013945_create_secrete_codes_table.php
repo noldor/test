@@ -29,7 +29,7 @@ class CreateSecreteCodesTable extends Migration
     {
         $this->db->getSchemaBuilder()->create('secrete_codes', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('calculation_id');
+            $table->bigInteger('calculation_id');
             $table->string('value', 255);
             $table->timestamps();
         });

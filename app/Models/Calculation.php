@@ -18,6 +18,11 @@ class Calculation extends Model
 
     protected $touches = ['secretCodes'];
 
+    public $with = [
+        'secretCodes',
+        'user'
+    ];
+
     public $relations = [
         'secretCodes',
         'user'
@@ -50,7 +55,7 @@ class Calculation extends Model
      */
     public function getList(User $user, $filters = [])
     {
-        $builder = self::scopeFilter(self::newQuery(), $filters);
+        $builder = self::scopeFilter(self::newQuery()->without('secretCodes'), $filters);
 
         if (!$user->isAdmin()) {
             $builder->where(
@@ -120,7 +125,7 @@ class Calculation extends Model
             if (array_key_exists($filter['type'], $this->reverseOperators)) {
                 $query->whereDoesntHave('secretCodes', function ($query) use ($filter) {
                     /** @var \Illuminate\Database\Query\Builder $query */
-                    $query->where('value', $this->reverseOperators[$filter['type']], $filter['value']);
+                    $query->where('secrete_codes.value', $this->reverseOperators[$filter['type']], $filter['value']);
                 });
             } else if ($filter['type'] === 'null') {
                 $query->doesntHave('secretCodes');
@@ -128,9 +133,9 @@ class Calculation extends Model
                 $query->whereHas('secretCodes', function ($query) use ($filter) {
                     /** @var \Illuminate\Database\Query\Builder $query */
                     if ($filter['type'] === 'not null') {
-                        $query->whereNotNull('value');
+                        $query->whereNotNull('secrete_codes.value');
                     } else {
-                        $query->where('value', $filter['type'], $filter['value']);
+                        $query->where('secrete_codes.value', $filter['type'], $filter['value']);
                     }
                 });
             }
