@@ -12,6 +12,13 @@ export default () => {
             new Calculation(form.getAttribute('action'), 'POST', form.querySelector('[name="_method"]').value).save(form);
         });
 
+        form.onkeydown = event =>{
+            if(window.event.keyCode === 13){
+                event.preventDefault();
+                new Calculation(form.getAttribute('action'), form.querySelector('[name="_method"]').value).save(form);
+            }
+        };
+
         form.addEventListener('onsubmit', event => {
             event.preventDefault();
             new Calculation(form.getAttribute('action'), form.querySelector('[name="_method"]').value).save(form);
