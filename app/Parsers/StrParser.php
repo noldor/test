@@ -64,45 +64,45 @@ class StrParser implements ParserInterface
     {
         $string = $this->content;
         while ($string !== false) {
-            $start = mb_stripos($string, $this->openTag, 0, 'UTF-8') + 1;
+            $start = mb_stripos($string, $this->openTag, 0) + 1;
+            $end = mb_stripos($string, $this->closeTag, 0);
+            $length = mb_strlen($string);
 
-            $nextChar = mb_substr($string, $start, 1, 'UTF-8');
-            if ($nextChar === $this->openTag) {
-                $string = mb_substr($string, $start, mb_strlen($string, 'UTF-8'), 'UTF-8');
-                continue;
-            }
-
-            $end = mb_stripos($string, $this->closeTag, 0, 'UTF-8');
-            $length = mb_strlen($string, 'UTF-8');
-
+            // If open tag and close tag not found break while.
             if ($start === false || $end === false) {
                 break;
             }
 
             if ($start > $end) {
-                $string = mb_substr($string, $start - 1, $length - $start, 'UTF-8');
+                $string = mb_substr($string, $start - 1, $length - $start);
                 continue;
             }
 
-            $interval = mb_substr($string, $start, $end - $start, 'UTF-8');
-
-            if (mb_stripos($interval, $this->openTag, 0, 'UTF-8') !== false) {
-                $string = mb_substr($string, $start + 1, $length - $end + 1, 'UTF-8');
+            $nextChar = mb_substr($string, $start, 1);
+            if ($nextChar === $this->openTag) {
+                $string = mb_substr($string, $start, mb_strlen($string));
                 continue;
             }
 
-            $nextChar = mb_substr($string, $start, 1, 'UTF-8');
+            $interval = mb_substr($string, $start, $end - $start);
+
+            if (mb_stripos($interval, $this->openTag, 0) !== false) {
+                $string = mb_substr($string, $start + 1);
+                continue;
+            }
+
+            $nextChar = mb_substr($string, $start, 1);
 
             if (!$this->filterChar($nextChar)) {
-                $string = mb_substr($string, $end, $length - $end, 'UTF-8');
+                $string = mb_substr($string, $end);
                 continue;
             }
 
-            $needle = mb_substr($string, $start, $end - $start, 'UTF-8');
+            $needle = mb_substr($string, $start, $end - $start);
 
             $this->buildElement($needle);
 
-            $string = mb_substr($string, $end, $length - $end, 'UTF-8');
+            $string = mb_substr($string, $end);
         }
 
         return $this;
@@ -125,8 +125,8 @@ class StrParser implements ParserInterface
      */
     private function buildElement($needle): void
     {
-        $firstChar = mb_substr($needle, 0, 1, 'UTF-8');
-        $otherChars = mb_substr($needle, 1, mb_strlen($needle, 'UTF-8'), 'UTF-8');
+        $firstChar = mb_substr($needle, 0, 1);
+        $otherChars = mb_substr($needle, 1);
 
         if ($firstChar === '0' && empty($otherChars)) {
             $this->result->push('0');
@@ -148,6 +148,6 @@ class StrParser implements ParserInterface
      */
     private function filterChar(string $char): bool
     {
-        return (mb_stripos($this->goodChars, $char, 0, 'UTF-8') !== false) ? true : false;
+        return (mb_stripos($this->goodChars, $char, 0) !== false) ? true : false;
     }
 }

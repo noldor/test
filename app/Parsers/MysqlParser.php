@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Parsers;
 
-use Illuminate\Container\Container;
 use Illuminate\Database\Connection;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Collection;

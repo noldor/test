@@ -84,7 +84,7 @@ class TextParser implements ParserInterface
      *
      * @return Collection
      */
-    public function getResult():Collection
+    public function getResult(): Collection
     {
         return clone $this->result;
     }

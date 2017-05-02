@@ -10,8 +10,9 @@ class BuildFilters
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Closure                 $next
+     *
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
@@ -28,6 +29,7 @@ class BuildFilters
             }
             $request->offsetSet('filters', $filters);
         }
+
         return $next($request);
     }
 }

@@ -14,7 +14,7 @@ class RegexIteratorParserTest extends TestCase
         return [
             [
                 'source' => file_get_contents(__DIR__ . '/testData.txt'),
-                'codes' => ['457', '111', '98', '2', '12637', '89123789', '032', '0', '-2010']
+                'codes' => ['457', '111', '98', '2', '12637', '89123789', '032', '0', '-2010', '12']
             ],
             [
                 'source' => file_get_contents(__DIR__ . '/testDataEmpty.txt'),
