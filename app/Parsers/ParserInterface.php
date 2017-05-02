@@ -19,5 +19,5 @@ interface ParserInterface
      *
      * @return \App\Parsers\ParserInterface
      */
-    public function parse():self;
+    public function parse(): ParserInterface;
 }
