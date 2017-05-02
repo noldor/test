@@ -36,3 +36,13 @@ $factory->define(App\Models\Calculation::class, function (Faker\Generator $faker
         'updated_at' => $faker->dateTime
     ];
 });
+
+/** @var \Illuminate\Database\Eloquent\Factory $factory */
+$factory->define(App\Models\SecretCode::class, function (Faker\Generator $faker) {
+    return [
+        'calculation_id' => $faker->numberBetween(1, 10),
+        'value' => $faker->numberBetween(0, 1000),
+        'created_at' => $faker->dateTime,
+        'updated_at' => $faker->dateTime
+    ];
+});
