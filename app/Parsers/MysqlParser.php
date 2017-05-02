@@ -59,7 +59,11 @@ class MysqlParser implements ParserInterface
         $db->unprepared("SET NAMES 'utf8';SET CHARACTER SET 'utf8';");
         $data = $db->selectOne("select preg(?, ?) as data", [$this->content, $this->regex]);
 
-        $preparedData = ltrim($data->data, '#');
+        if ($data instanceof \stdClass) {
+            $preparedData = ltrim($data->data, '#');
+        } else {
+            $preparedData = '';
+        }
 
         $token = strtok($preparedData, "#");
         while ($token !== false) {
